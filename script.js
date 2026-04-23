@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function mapRefs() {
   refs.form = document.getElementById("addBottleForm");
+  refs.nameLabel = document.getElementById("wineNameLabel");
   refs.nameInput = document.getElementById("wineName");
   refs.yearGroup = document.getElementById("wineYearGroup");
   refs.yearInput = document.getElementById("wineYear");
@@ -64,7 +65,11 @@ function onAddBottle(event) {
   const quantity = Number.parseInt(refs.quantityInput.value, 10);
 
   if (!name) {
-    alert("Veuillez entrer le nom du vin.");
+    alert(
+      color === "alcool_fort"
+        ? "Veuillez entrer le nom de l'alcool."
+        : "Veuillez entrer le nom du vin."
+    );
     refs.nameInput.focus();
     return;
   }
@@ -205,6 +210,15 @@ function updateYearVisibility() {
   const isSpirit = refs.colorInput.value === "alcool_fort";
   refs.yearGroup.hidden = isSpirit;
   refs.yearInput.required = !isSpirit;
+
+  if (isSpirit) {
+    refs.nameLabel.textContent = "Nom de l'alcool";
+    refs.nameInput.placeholder = "Ex: Cognac";
+  } else {
+    refs.nameLabel.textContent = "Nom du vin";
+    refs.nameInput.placeholder = "Ex: Bordeaux rouge";
+  }
+
   if (isSpirit) {
     refs.yearInput.value = "";
   }
