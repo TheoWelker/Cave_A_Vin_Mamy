@@ -29,9 +29,6 @@ function mapRefs() {
   refs.quantityInput = document.getElementById("wineQuantity");
   refs.searchInput = document.getElementById("searchInput");
   refs.sortSelect = document.getElementById("sortSelect");
-  refs.exportButton = document.getElementById("exportButton");
-  refs.importButton = document.getElementById("importButton");
-  refs.importFileInput = document.getElementById("importFileInput");
   refs.bottleList = document.getElementById("bottleList");
   refs.totalCount = document.getElementById("totalCount");
   refs.emptyState = document.getElementById("emptyState");
@@ -49,9 +46,6 @@ function bindEvents() {
     state.sortMode = event.target.value;
     render();
   });
-  refs.exportButton.addEventListener("click", onExportJson);
-  refs.importButton.addEventListener("click", () => refs.importFileInput.click());
-  refs.importFileInput.addEventListener("change", onImportJson);
 }
 
 function onAddBottle(event) {
@@ -176,58 +170,6 @@ function parseDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   return date;
-}
-
-function onExportJson() {
-  if (state.bottles.length === 0) {
-    alert("Il n'y a aucune bouteille a exporter.");
-    return;
-  }
-
-  const data = JSON.stringify(state.bottles, null, 2);
-  const blob = new Blob([data], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-
-  const date = new Date().toISOString().slice(0, 10);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `cave-mamy-${date}.json`;
-  link.click();
-
-  URL.revokeObjectURL(url);
-}
-
-function onImportJson(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const parsed = JSON.parse(String(reader.result));
-      if (!Array.isArray(parsed)) {
-        throw new Error("Le fichier doit contenir une liste JSON.");
-      }
-
-      const imported = parsed.map(normalizeBottle).filter(Boolean);
-      if (imported.length === 0) {
-        alert("Aucune bouteille valide trouvee dans ce fichier.");
-        return;
-      }
-
-      state.bottles = mergeBottlesByType([...state.bottles, ...imported]);
-      persistBottles();
-      render();
-      alert(`${imported.length} entree(s) importee(s).`);
-    } catch (error) {
-      console.error(error);
-      alert("Import impossible: fichier JSON invalide.");
-    } finally {
-      refs.importFileInput.value = "";
-    }
-  };
-
-  reader.readAsText(file, "utf-8");
 }
 
 function render() {
