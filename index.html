@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#7a2f2f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Cave Mamy" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta
+      name="description"
+      content="Application simple pour gerer les bouteilles de vin de la cave."
+    />
+    <title>Cave de Mamy</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="hero">
+        <h1>Cave de Mamy</h1>
+        <p>Un carnet simple pour noter les bouteilles.</p>
+      </header>
+
+      <section class="card">
+        <h2>Ajouter une bouteille</h2>
+        <form id="addBottleForm" novalidate>
+          <label for="wineName">Nom du vin</label>
+          <input
+            id="wineName"
+            name="wineName"
+            type="text"
+            autocomplete="off"
+            placeholder="Ex: Bordeaux Rouge"
+            required
+          />
+
+          <label for="wineYear">Annee</label>
+          <input
+            id="wineYear"
+            name="wineYear"
+            type="number"
+            inputmode="numeric"
+            min="1900"
+            max="2100"
+            placeholder="Ex: 2018"
+            required
+          />
+
+          <label for="wineSize">Format</label>
+          <select id="wineSize" name="wineSize" required>
+            <option value="grande">Grande bouteille (75 cl)</option>
+            <option value="demi">Demi-bouteille (37,5 cl)</option>
+          </select>
+
+          <label for="wineQuantity">Quantite</label>
+          <input
+            id="wineQuantity"
+            name="wineQuantity"
+            type="number"
+            inputmode="numeric"
+            min="1"
+            max="99"
+            value="1"
+            required
+          />
+
+          <button class="btn btn-primary" type="submit">Ajouter</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Ma cave</h2>
+
+        <p id="totalCount" class="total-count" aria-live="polite">0 bouteille</p>
+
+        <label for="searchInput">Rechercher par nom</label>
+        <input id="searchInput" type="search" placeholder="Tapez un nom de vin" />
+
+        <label for="sortSelect">Trier</label>
+        <select id="sortSelect">
+          <option value="recent">Ajout recente d'abord</option>
+          <option value="yearDesc">Annee la plus recente</option>
+          <option value="yearAsc">Annee la plus ancienne</option>
+          <option value="nameAsc">Nom A a Z</option>
+        </select>
+
+        <div class="actions-row">
+          <button id="exportButton" class="btn btn-secondary" type="button">Exporter sauvegarde</button>
+          <button id="importButton" class="btn btn-secondary" type="button">Importer sauvegarde</button>
+          <input id="importFileInput" type="file" accept="application/json" hidden />
+        </div>
+
+        <p id="emptyState" class="empty-state">Aucune bouteille dans la cave.</p>
+        <ul id="bottleList" class="bottle-list" aria-live="polite"></ul>
+      </section>
+    </main>
+    <script src="script.js" defer></script>
+  </body>
+</html>
