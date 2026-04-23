@@ -27,7 +27,7 @@
       </header>
 
       <section class="card">
-        <h2>Ajouter une bouteille</h2>
+        <h2 id="formTitle">Ajouter une bouteille</h2>
         <form id="addBottleForm" novalidate>
           <label id="wineNameLabel" for="wineName">Nom du vin</label>
           <input
@@ -79,7 +79,12 @@
             required
           />
 
-          <button class="btn btn-primary" type="submit">Ajouter</button>
+          <div class="form-actions">
+            <button id="submitButton" class="btn btn-primary" type="submit">Ajouter</button>
+            <button id="cancelEditButton" class="btn btn-secondary" type="button" hidden>
+              Annuler
+            </button>
+          </div>
         </form>
       </section>
 
