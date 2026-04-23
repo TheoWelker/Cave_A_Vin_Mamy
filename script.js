@@ -4,6 +4,7 @@ const STORAGE_KEY = "caveMamyBottlesV1";
 const YEAR_MIN = 1900;
 const YEAR_MAX = new Date().getFullYear() + 1;
 const ALLOWED_SIZES = new Set(["grande", "demi"]);
+const ALLOWED_COLORS = new Set(["rouge", "blanc"]);
 
 const state = {
   bottles: [],
@@ -25,6 +26,7 @@ function mapRefs() {
   refs.form = document.getElementById("addBottleForm");
   refs.nameInput = document.getElementById("wineName");
   refs.yearInput = document.getElementById("wineYear");
+  refs.colorInput = document.getElementById("wineColor");
   refs.sizeInput = document.getElementById("wineSize");
   refs.quantityInput = document.getElementById("wineQuantity");
   refs.searchInput = document.getElementById("searchInput");
@@ -53,6 +55,7 @@ function onAddBottle(event) {
 
   const name = refs.nameInput.value.trim();
   const year = Number.parseInt(refs.yearInput.value, 10);
+  const color = refs.colorInput.value;
   const size = refs.sizeInput.value;
   const quantity = Number.parseInt(refs.quantityInput.value, 10);
 
@@ -68,6 +71,12 @@ function onAddBottle(event) {
     return;
   }
 
+  if (!ALLOWED_COLORS.has(color)) {
+    alert("Veuillez choisir un type de vin valide.");
+    refs.colorInput.focus();
+    return;
+  }
+
   if (!ALLOWED_SIZES.has(size)) {
     alert("Veuillez choisir un format valide.");
     refs.sizeInput.focus();
@@ -80,7 +89,7 @@ function onAddBottle(event) {
     return;
   }
 
-  const existingBottle = findBottleByType(name, year, size);
+  const existingBottle = findBottleByType(name, year, color, size);
   if (existingBottle) {
     existingBottle.quantity += quantity;
     // Met a jour la date pour garder le tri "ajout recent" logique.
@@ -91,6 +100,7 @@ function onAddBottle(event) {
       id: createId(),
       name,
       year,
+      color,
       size,
       quantity,
       // La date d'ajout est automatique, au format ISO pour un tri fiable.
@@ -139,10 +149,16 @@ function normalizeBottle(item) {
     id: typeof item.id === "string" && item.id ? item.id : createId(),
     name,
     year,
+    color: normalizeColor(item.color),
     size: normalizeSize(item.size),
     quantity: normalizeQuantity(item.quantity),
     addedAt: addedAt.toISOString(),
   };
+}
+
+function normalizeColor(value) {
+  if (typeof value === "string" && ALLOWED_COLORS.has(value)) return value;
+  return "rouge";
 }
 
 function normalizeSize(value) {
@@ -156,11 +172,12 @@ function normalizeQuantity(value) {
   return quantity;
 }
 
-function findBottleByType(name, year, size) {
+function findBottleByType(name, year, color, size) {
   const normalizedName = name.trim().toLowerCase();
   return state.bottles.find(
     (item) =>
       item.year === year &&
+      item.color === color &&
       item.size === size &&
       item.name.trim().toLowerCase() === normalizedName
   );
@@ -189,7 +206,7 @@ function render() {
 
     const meta = document.createElement("p");
     meta.className = "bottle-meta";
-    meta.textContent = `Annee: ${bottle.year} | Format: ${formatSize(bottle.size)} | Quantite: ${bottle.quantity} | Ajoutee le ${formatDate(bottle.addedAt)}`;
+    meta.textContent = `Annee: ${bottle.year} | Type: ${formatColor(bottle.color)} | Format: ${formatSize(bottle.size)} | Quantite: ${bottle.quantity} | Ajoutee le ${formatDate(bottle.addedAt)}`;
 
     const actions = document.createElement("div");
     actions.className = "item-actions";
@@ -253,6 +270,10 @@ function formatSize(size) {
   return size === "demi" ? "Demi (37,5 cl)" : "Grande (75 cl)";
 }
 
+function formatColor(color) {
+  return color === "blanc" ? "Blanc" : "Rouge";
+}
+
 function persistBottles() {
   // Sauvegarde locale, sans serveur.
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.bottles));
@@ -301,7 +322,7 @@ function mergeBottlesByType(list) {
   const map = new Map();
 
   for (const bottle of list) {
-    const key = makeBottleKey(bottle.name, bottle.year, bottle.size);
+    const key = makeBottleKey(bottle.name, bottle.year, bottle.color, bottle.size);
     const current = map.get(key);
 
     if (!current) {
@@ -318,6 +339,6 @@ function mergeBottlesByType(list) {
   return Array.from(map.values()).sort((a, b) => b.addedAt.localeCompare(a.addedAt));
 }
 
-function makeBottleKey(name, year, size) {
-  return `${name.trim().toLowerCase()}|${year}|${size}`;
+function makeBottleKey(name, year, color, size) {
+  return `${name.trim().toLowerCase()}|${year}|${color}|${size}`;
 }
