@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "cave-mamy-cache-v5";
+const CACHE_NAME = "cave-mamy-cache-v6";
 const APP_SHELL = [
   "./",
   "./index.html",

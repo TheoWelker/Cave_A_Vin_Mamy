@@ -4,7 +4,7 @@ const STORAGE_KEY = "caveMamyBottlesV1";
 const YEAR_MIN = 1900;
 const YEAR_MAX = new Date().getFullYear() + 1;
 const ALLOWED_SIZES = new Set(["grande", "50cl", "demi"]);
-const ALLOWED_COLORS = new Set(["rouge", "blanc"]);
+const ALLOWED_COLORS = new Set(["rouge", "blanc", "alcool_fort"]);
 
 const state = {
   bottles: [],
@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function mapRefs() {
   refs.form = document.getElementById("addBottleForm");
   refs.nameInput = document.getElementById("wineName");
+  refs.yearGroup = document.getElementById("wineYearGroup");
   refs.yearInput = document.getElementById("wineYear");
   refs.colorInput = document.getElementById("wineColor");
   refs.sizeInput = document.getElementById("wineSize");
@@ -40,6 +41,7 @@ function mapRefs() {
 
 function bindEvents() {
   refs.form.addEventListener("submit", onAddBottle);
+  refs.colorInput.addEventListener("change", updateYearVisibility);
   refs.searchInput.addEventListener("input", (event) => {
     state.searchText = event.target.value.trim().toLowerCase();
     render();
@@ -48,14 +50,16 @@ function bindEvents() {
     state.sortMode = event.target.value;
     render();
   });
+
+  updateYearVisibility();
 }
 
 function onAddBottle(event) {
   event.preventDefault();
 
   const name = refs.nameInput.value.trim();
-  const year = Number.parseInt(refs.yearInput.value, 10);
   const color = refs.colorInput.value;
+  const year = color === "alcool_fort" ? null : Number.parseInt(refs.yearInput.value, 10);
   const size = refs.sizeInput.value;
   const quantity = Number.parseInt(refs.quantityInput.value, 10);
 
@@ -65,8 +69,11 @@ function onAddBottle(event) {
     return;
   }
 
-  if (!Number.isInteger(year) || year < YEAR_MIN || year > YEAR_MAX) {
-    alert(`Veuillez entrer une annee valide (${YEAR_MIN} a ${YEAR_MAX}).`);
+  if (
+    color !== "alcool_fort" &&
+    (!Number.isInteger(year) || year < YEAR_MIN || year > YEAR_MAX)
+  ) {
+    alert(`Veuillez entrer une année valide (${YEAR_MIN} à ${YEAR_MAX}).`);
     refs.yearInput.focus();
     return;
   }
@@ -84,7 +91,7 @@ function onAddBottle(event) {
   }
 
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
-    alert("Veuillez entrer une quantite valide (1 a 99).");
+    alert("Veuillez entrer une quantité valide (1 à 99).");
     refs.quantityInput.focus();
     return;
   }
@@ -92,11 +99,11 @@ function onAddBottle(event) {
   const existingBottle = findBottleByType(name, year, color, size);
   if (existingBottle) {
     existingBottle.quantity += quantity;
-    // Met a jour la date pour garder le tri "ajout recent" logique.
+    // Met à jour la date pour garder le tri "ajout récent" logique.
     existingBottle.addedAt = new Date().toISOString();
   } else {
     const bottle = {
-      // L'id unique aide pour suppression sans ambiguite.
+      // L'id unique aide pour suppression sans ambiguïté.
       id: createId(),
       name,
       year,
@@ -138,10 +145,15 @@ function normalizeBottle(item) {
   if (!item || typeof item !== "object") return null;
 
   const name = String(item.name ?? "").trim();
-  const year = Number.parseInt(item.year, 10);
+  const color = normalizeColor(item.color);
+  const year = color === "alcool_fort" ? null : Number.parseInt(item.year, 10);
   const addedAt = parseDate(item.addedAt);
 
-  if (!name || !Number.isInteger(year) || year < YEAR_MIN || year > YEAR_MAX || !addedAt) {
+  const hasValidYear =
+    color === "alcool_fort" ||
+    (Number.isInteger(year) && year >= YEAR_MIN && year <= YEAR_MAX);
+
+  if (!name || !hasValidYear || !addedAt) {
     return null;
   }
 
@@ -149,7 +161,7 @@ function normalizeBottle(item) {
     id: typeof item.id === "string" && item.id ? item.id : createId(),
     name,
     year,
-    color: normalizeColor(item.color),
+    color,
     size: normalizeSize(item.size),
     quantity: normalizeQuantity(item.quantity),
     addedAt: addedAt.toISOString(),
@@ -189,6 +201,15 @@ function parseDate(value) {
   return date;
 }
 
+function updateYearVisibility() {
+  const isSpirit = refs.colorInput.value === "alcool_fort";
+  refs.yearGroup.hidden = isSpirit;
+  refs.yearInput.required = !isSpirit;
+  if (isSpirit) {
+    refs.yearInput.value = "";
+  }
+}
+
 function render() {
   const filtered = getFilteredAndSortedBottles();
   refs.bottleList.innerHTML = "";
@@ -206,7 +227,11 @@ function render() {
 
     const meta = document.createElement("p");
     meta.className = "bottle-meta";
-    meta.textContent = `Annee: ${bottle.year} | Type: ${formatColor(bottle.color)} | Format: ${formatSize(bottle.size)} | Quantite: ${bottle.quantity} | Ajoutee le ${formatDate(bottle.addedAt)}`;
+    if (bottle.color === "alcool_fort") {
+      meta.textContent = `Type: ${formatColor(bottle.color)} | Format: ${formatSize(bottle.size)} | Quantité: ${bottle.quantity} | Ajoutée le ${formatDate(bottle.addedAt)}`;
+    } else {
+      meta.textContent = `Année: ${bottle.year} | Type: ${formatColor(bottle.color)} | Format: ${formatSize(bottle.size)} | Quantité: ${bottle.quantity} | Ajoutée le ${formatDate(bottle.addedAt)}`;
+    }
 
     const actions = document.createElement("div");
     actions.className = "item-actions";
@@ -234,10 +259,10 @@ function getFilteredAndSortedBottles() {
   const sorted = [...list];
   switch (state.sortMode) {
     case "yearDesc":
-      sorted.sort((a, b) => b.year - a.year || b.addedAt.localeCompare(a.addedAt));
+      sorted.sort((a, b) => compareYearsDesc(a.year, b.year) || b.addedAt.localeCompare(a.addedAt));
       break;
     case "yearAsc":
-      sorted.sort((a, b) => a.year - b.year || b.addedAt.localeCompare(a.addedAt));
+      sorted.sort((a, b) => compareYearsAsc(a.year, b.year) || b.addedAt.localeCompare(a.addedAt));
       break;
     case "nameAsc":
       sorted.sort((a, b) => a.name.localeCompare(b.name, "fr", { sensitivity: "base" }));
@@ -272,7 +297,9 @@ function formatSize(size) {
 }
 
 function formatColor(color) {
-  return color === "blanc" ? "Blanc" : "Rouge";
+  if (color === "blanc") return "Blanc";
+  if (color === "alcool_fort") return "Alcool fort";
+  return "Rouge";
 }
 
 function persistBottles() {
@@ -341,5 +368,30 @@ function mergeBottlesByType(list) {
 }
 
 function makeBottleKey(name, year, color, size) {
-  return `${name.trim().toLowerCase()}|${year}|${color}|${size}`;
+  const yearKey = year === null ? "sans_annee" : String(year);
+  return `${name.trim().toLowerCase()}|${yearKey}|${color}|${size}`;
+}
+
+function compareYearsAsc(a, b) {
+  const firstIsYear = Number.isInteger(a);
+  const secondIsYear = Number.isInteger(b);
+
+  // Les entrées sans année (alcool fort) restent en bas.
+  if (!firstIsYear && !secondIsYear) return 0;
+  if (!firstIsYear) return 1;
+  if (!secondIsYear) return -1;
+
+  return a - b;
+}
+
+function compareYearsDesc(a, b) {
+  const firstIsYear = Number.isInteger(a);
+  const secondIsYear = Number.isInteger(b);
+
+  // Les entrées sans année (alcool fort) restent en bas.
+  if (!firstIsYear && !secondIsYear) return 0;
+  if (!firstIsYear) return 1;
+  if (!secondIsYear) return -1;
+
+  return b - a;
 }

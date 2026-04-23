@@ -11,7 +11,7 @@
     <meta name="format-detection" content="telephone=no" />
     <meta
       name="description"
-      content="Application simple pour gerer les bouteilles de vin de la cave."
+      content="Application simple pour gérer les bouteilles de vin de la cave."
     />
     <title>Cave de Mamy</title>
     <link rel="manifest" href="manifest.json" />
@@ -39,23 +39,26 @@
             required
           />
 
-          <label for="wineYear">Annee</label>
-          <input
-            id="wineYear"
-            name="wineYear"
-            type="number"
-            inputmode="numeric"
-            min="1900"
-            max="2100"
-            placeholder="Ex: 2018"
-            required
-          />
-
           <label for="wineColor">Type de vin</label>
           <select id="wineColor" name="wineColor" required>
             <option value="rouge">Vin rouge</option>
             <option value="blanc">Vin blanc</option>
+            <option value="alcool_fort">Alcool fort</option>
           </select>
+
+          <div id="wineYearGroup">
+            <label for="wineYear">Année</label>
+            <input
+              id="wineYear"
+              name="wineYear"
+              type="number"
+              inputmode="numeric"
+              min="1900"
+              max="2100"
+              placeholder="Ex: 2018"
+              required
+            />
+          </div>
 
           <label for="wineSize">Format</label>
           <select id="wineSize" name="wineSize" required>
@@ -64,7 +67,7 @@
             <option value="demi">Demi-bouteille (37,5 cl)</option>
           </select>
 
-          <label for="wineQuantity">Quantite</label>
+          <label for="wineQuantity">Quantité</label>
           <input
             id="wineQuantity"
             name="wineQuantity"
@@ -90,10 +93,10 @@
 
         <label for="sortSelect">Trier</label>
         <select id="sortSelect">
-          <option value="recent">Ajout recente d'abord</option>
-          <option value="yearDesc">Annee la plus recente</option>
-          <option value="yearAsc">Annee la plus ancienne</option>
-          <option value="nameAsc">Nom A a Z</option>
+          <option value="recent">Ajout récent d'abord</option>
+          <option value="yearDesc">Année la plus récente</option>
+          <option value="yearAsc">Année la plus ancienne</option>
+          <option value="nameAsc">Nom A à Z</option>
         </select>
 
         <p id="emptyState" class="empty-state">Aucune bouteille dans la cave.</p>
