@@ -8,7 +8,6 @@ const ALLOWED_COLORS = new Set(["rouge", "blanc", "alcool_fort"]);
 
 const state = {
   bottles: [],
-  searchText: "",
   sortMode: "recent",
   editingBottleId: null,
 };
@@ -37,7 +36,6 @@ function mapRefs() {
   refs.sizeInput = document.getElementById("wineSize");
   refs.quantityInput = document.getElementById("wineQuantity");
 
-  refs.searchInput = document.getElementById("searchInput");
   refs.sortSelect = document.getElementById("sortSelect");
   refs.bottleList = document.getElementById("bottleList");
   refs.totalCount = document.getElementById("totalCount");
@@ -50,11 +48,6 @@ function bindEvents() {
   refs.form.addEventListener("submit", onSubmitForm);
   refs.cancelEditButton.addEventListener("click", resetFormMode);
   refs.colorInput.addEventListener("change", updateDynamicFields);
-
-  refs.searchInput.addEventListener("input", (event) => {
-    state.searchText = event.target.value.trim().toLowerCase();
-    render();
-  });
 
   refs.sortSelect.addEventListener("change", (event) => {
     state.sortMode = event.target.value;
@@ -343,11 +336,7 @@ function render() {
 }
 
 function getFilteredAndSortedBottles() {
-  const list = state.bottles.filter((item) =>
-    item.name.toLowerCase().includes(state.searchText)
-  );
-
-  const sorted = [...list];
+  const sorted = [...state.bottles];
   switch (state.sortMode) {
     case "yearDesc":
       sorted.sort((a, b) => compareYearsDesc(a.year, b.year) || b.addedAt.localeCompare(a.addedAt));
