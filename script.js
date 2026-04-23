@@ -3,7 +3,7 @@
 const STORAGE_KEY = "caveMamyBottlesV1";
 const YEAR_MIN = 1900;
 const YEAR_MAX = new Date().getFullYear() + 1;
-const ALLOWED_SIZES = new Set(["grande", "demi"]);
+const ALLOWED_SIZES = new Set(["grande", "50cl", "demi"]);
 const ALLOWED_COLORS = new Set(["rouge", "blanc"]);
 
 const state = {
@@ -267,6 +267,7 @@ function getTotalBottleUnits() {
 }
 
 function formatSize(size) {
+  if (size === "50cl") return "Bouteille 50 cl";
   return size === "demi" ? "Demi (37,5 cl)" : "Grande (75 cl)";
 }
 
